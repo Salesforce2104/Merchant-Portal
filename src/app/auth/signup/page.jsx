@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import api from "@/lib/axios";
@@ -10,7 +10,22 @@ import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Loader2, AlertCircle, ShieldOff, Eye, EyeOff } from "lucide-react";
 
-export default function SignupPage() {
+// Wrapper component to handle Suspense for useSearchParams
+export default function SignupPageWrapper() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-gray-50">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        </div>
+      }
+    >
+      <SignupPage />
+    </Suspense>
+  );
+}
+
+function SignupPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
