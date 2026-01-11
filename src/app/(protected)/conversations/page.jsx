@@ -13,7 +13,7 @@ import { MoreVertical, RefreshCw, Download, Loader2 } from "lucide-react";
 import api from "@/lib/axios";
 import toast from "react-hot-toast";
 
-export default function ConversationsPage() {
+export default function ConversationsPage({ customFetch }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [conversations, setConversations] = useState([]);
@@ -22,16 +22,23 @@ export default function ConversationsPage() {
 
   useEffect(() => {
     fetchConversations();
-  }, []);
+  }, [customFetch]); // Add customFetch dependency
 
   const fetchConversations = async () => {
     setIsLoading(true);
     try {
-      const response = await api.get("/auth/conversations", {
-        params: { pageSize: 100 }, // Fetch larger batch to support client-side pagination
-      });
-      if (response.data.success) {
-        setConversations(response.data.conversations);
+      let data;
+      if (customFetch) {
+        data = await customFetch({ pageSize: 100 });
+      } else {
+        const response = await api.get("/auth/conversations", {
+          params: { pageSize: 100 },
+        });
+        data = response.data;
+      }
+
+      if (data.success) {
+        setConversations(data.conversations || []);
       }
     } catch (err) {
       console.error("Failed to fetch conversations", err);
@@ -141,13 +148,13 @@ export default function ConversationsPage() {
           >
             <RefreshCw className="h-4 w-4" />
           </Button>
-          <Button
+          {/* <Button
             variant="outline"
             size="icon"
             className="bg-green-500 text-white border-none hover:bg-green-600"
           >
             <Download className="h-4 w-4" />
-          </Button>
+          </Button> */}
         </div>
       </div>
 

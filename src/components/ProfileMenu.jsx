@@ -55,7 +55,7 @@ export default function ProfileMenu({ user, onLogout }) {
               <h3 className="text-sm font-bold text-gray-900 truncate">
                 {user.name || "User"}
               </h3>
-              <p className="text-xs text-gray-500 uppercase truncate">
+              <p className="text-xs text-gray-500 truncate">
                 {user.email}
               </p>
             </div>

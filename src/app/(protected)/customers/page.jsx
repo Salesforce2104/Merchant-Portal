@@ -7,7 +7,7 @@ import { User, Plus, Loader2 } from "lucide-react";
 import api from "@/lib/axios";
 import toast from "react-hot-toast";
 
-export default function CustomersPage() {
+export default function CustomersPage({ customFetch }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [customers, setCustomers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -15,18 +15,23 @@ export default function CustomersPage() {
 
   useEffect(() => {
     fetchCustomers();
-  }, [searchTerm]);
+  }, [searchTerm, customFetch]);
 
   const fetchCustomers = async () => {
     setIsLoading(true);
     try {
-      // Fetch customers
-      const response = await api.get("/auth/customers", {
-        params: { limit: 100 },
-      });
+      let data;
+      if (customFetch) {
+        data = await customFetch({ limit: 100 });
+      } else {
+        const response = await api.get("/auth/customers", {
+          params: { limit: 100 },
+        });
+        data = response.data;
+      }
 
-      if (response.data.success) {
-        setCustomers(response.data.customers);
+      if (data.success) {
+        setCustomers(data.customers);
       }
     } catch (err) {
       console.error("Failed to fetch customers", err);
@@ -62,9 +67,7 @@ export default function CustomersPage() {
   return (
     <div className="p-8 max-w-7xl mx-auto">
       <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 min-h-[600px]">
-        <h1 className="text-2xl font-bold mb-6 text-gray-900">
-          Conversations
-        </h1>
+        <h1 className="text-2xl font-bold mb-6 text-gray-900">Conversations</h1>
 
         <div className="mb-8">
           <h2 className="text-lg font-medium mb-1">Select Customer</h2>
