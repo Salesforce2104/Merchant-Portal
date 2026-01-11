@@ -16,30 +16,45 @@ import autoTable from "jspdf-autotable";
 import toast from "react-hot-toast";
 import api from "@/lib/axios";
 
-export default function TransactionsPage() {
+export default function TransactionsPage({ customFetch }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const itemsPerPage = 10;
 
   useEffect(() => {
     fetchTransactions();
-  }, []);
+  }, [customFetch]); // Add customFetch to dep array
 
   const fetchTransactions = async () => {
     setIsLoading(true);
+    setError(null);
     try {
-      // Fetch a larger batch for client-side filtering since backend search might be limited
-      const response = await api.get("/auth/transactions", {
-        params: { limit: 100 },
-      });
-      if (response.data.success) {
-        setTransactions(response.data.transactions);
+      let data;
+      if (customFetch) {
+        data = await customFetch({ limit: 100 });
+      } else {
+        const response = await api.get("/auth/transactions", {
+          params: { limit: 100 },
+        });
+        data = response.data;
+      }
+
+      if (data.success) {
+        setTransactions(data.transactions || []); // Guard against undefined
+      } else {
+        setError(data.error || "Failed to load transactions");
       }
     } catch (err) {
       console.error("Failed to fetch transactions", err);
+      const errorMessage =
+        err.response?.data?.error ||
+        err.response?.data?.details ||
+        "Failed to load transactions. The merchant may not have Authvia credentials configured.";
+      setError(errorMessage);
       toast.error("Failed to load transactions");
     } finally {
       setIsLoading(false);
@@ -178,6 +193,27 @@ export default function TransactionsPage() {
       {isLoading ? (
         <div className="flex justify-center py-20">
           <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        </div>
+      ) : error ? (
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <div className="h-12 w-12 rounded-full bg-red-100 flex items-center justify-center text-red-600 mb-4">
+            <FileText className="h-6 w-6" />
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            Unable to Load Transactions
+          </h3>
+          <p className="text-gray-500 max-w-md">
+            {typeof error === "string"
+              ? error
+              : "The merchant may not have Authvia credentials configured, or there was a connection issue."}
+          </p>
+          <Button
+            variant="outline"
+            className="mt-4"
+            onClick={fetchTransactions}
+          >
+            Try Again
+          </Button>
         </div>
       ) : (
         <>

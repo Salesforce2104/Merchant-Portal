@@ -77,13 +77,23 @@ export default function Navbar() {
     return null;
   }
 
+  // Determine where logo should link based on user role
+  const isAdminUser =
+    user?.role?.includes("admin") ||
+    user?.email?.includes("admin") ||
+    (typeof window !== "undefined" &&
+      localStorage.getItem(ADMIN_AUTH_TOKEN_KEY) &&
+      !localStorage.getItem(AUTH_TOKEN_KEY));
+
+  const logoHref = isAdminUser ? "/admin/dashboard" : "/";
+
   return (
     <nav className="border-b border-gray-200 bg-white shadow-sm">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 justify-between">
           <div className="flex">
             <div className="flex flex-shrink-0 items-center">
-              <Link href="/" className="flex items-center gap-2">
+              <Link href={logoHref} className="flex items-center gap-2">
                 <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-white font-bold">
                   M
                 </div>
@@ -110,7 +120,17 @@ export default function Navbar() {
                           : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
                       }`}
                     >
-                      Admin Home
+                      Dashboard
+                    </Link>
+                    <Link
+                      href="/admin/stores"
+                      className={`px-3 py-2 rounded-md text-sm font-medium ${
+                        pathname?.startsWith("/admin/stores")
+                          ? "bg-gray-100 text-gray-900"
+                          : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                      }`}
+                    >
+                      Stores
                     </Link>
                     <Link
                       href="/admin/customers"
