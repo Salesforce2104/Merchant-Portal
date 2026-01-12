@@ -18,6 +18,7 @@ import toast from "react-hot-toast";
 import { useTransactions } from "@/hooks/useUserData";
 import { useMerchantTransactions } from "@/hooks/useAdminData";
 import { useSearchParams } from "next/navigation";
+import { formatDisplayData } from "@/lib/utils";
 
 export default function TransactionsPage({ customFetch }) {
   const searchParams = useSearchParams();
@@ -174,24 +175,28 @@ export default function TransactionsPage({ customFetch }) {
         {item.created}
       </td> */}
       <td className="px-6 py-4 text-gray-900 font-medium text-center">
-        {item.description}
+        {formatDisplayData(item.description)}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-gray-500 text-center">
-        {item.customerRef}
+        {formatDisplayData(item.customerRef)}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-gray-900 font-medium text-center">
-        {typeof item.amount === "object"
-          ? item.amount?.value || item.amount?.amount || 0
-          : item.amount}
+        {formatDisplayData(
+          typeof item.amount === "object"
+            ? item.amount?.value || item.amount?.amount || 0
+            : item.amount
+        )}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-gray-500 text-center">
         {/* Handle if paymentMethod is an object */}
-        {typeof item.paymentMethod === "object"
-          ? item.paymentMethod?.id || item.paymentMethod?.type || "N/A"
-          : item.paymentMethod}
+        {formatDisplayData(
+          typeof item.paymentMethod === "object"
+            ? item.paymentMethod?.id || item.paymentMethod?.type || null
+            : item.paymentMethod
+        )}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-gray-500 text-center">
-        {item.externalReference}
+        {formatDisplayData(item.externalReference)}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-center">
         <Badge

@@ -16,6 +16,7 @@ import { Bar, Doughnut, Line } from "react-chartjs-2";
 import { Loader2, DollarSign, CreditCard } from "lucide-react";
 import Badge from "@/components/ui/Badge";
 import { useTransactions, useConversations } from "@/hooks/useUserData";
+import { formatDisplayData } from "@/lib/utils";
 
 // Register ChartJS components
 ChartJS.register(
@@ -207,10 +208,10 @@ export default function DashboardCharts() {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-gray-900 text-center">
-                      {conv.address}
+                      {formatDisplayData(conv.address)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-gray-900 text-center">
-                      {conv.customerRef}
+                      {formatDisplayData(conv.customerRef)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center">
                       <div className="flex gap-2 justify-center">

@@ -22,6 +22,7 @@ import toast from "react-hot-toast";
 import { useConversations } from "@/hooks/useUserData";
 import { useMerchantConversations } from "@/hooks/useAdminData";
 import { useSearchParams } from "next/navigation";
+import { formatDisplayData } from "@/lib/utils";
 
 export default function ConversationsPage({ customFetch }) {
   const searchParams = useSearchParams();
@@ -93,9 +94,11 @@ export default function ConversationsPage({ customFetch }) {
             : ""}
         </div>
       </td>
-      <td className="px-6 py-4 text-gray-900 text-center">{item.address}</td>
+      <td className="px-6 py-4 text-gray-900 text-center">
+        {formatDisplayData(item.address)}
+      </td>
       <td className="px-6 py-4 whitespace-nowrap text-gray-900 text-center">
-        {item.customerRef}
+        {formatDisplayData(item.customerRef)}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-center">
         <div className="flex gap-2 justify-center">
@@ -114,7 +117,7 @@ export default function ConversationsPage({ customFetch }) {
         </div>
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-gray-500 text-center">
-        {item.expiration}
+        {formatDisplayData(item.expiration)}
       </td>
       {/* <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
         <button className="text-gray-400 hover:text-gray-600">
