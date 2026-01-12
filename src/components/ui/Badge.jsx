@@ -7,8 +7,9 @@ const Badge = ({ status, className }) => {
     case "resolved":
       variantClass = "bg-green-500 text-white";
       break;
+    case "in-progress":
     case "in progress":
-      variantClass = "bg-blue-500 text-white";
+      variantClass = "bg-blue-100 text-blue-700 font-medium";
       break;
     case "settling":
       variantClass =
@@ -25,7 +26,9 @@ const Badge = ({ status, className }) => {
   // Based on transaction image, "CHARGE" is just text, "SETTLING" is bold text.
   // "Resolved" / "In Progress" are rounded pills.
 
-  const isPill = ["resolved", "in progress"].includes(status?.toLowerCase());
+  const isPill = ["resolved", "in-progress", "in progress"].includes(
+    status?.toLowerCase()
+  );
 
   return (
     <span

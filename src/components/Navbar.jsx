@@ -89,7 +89,7 @@ export default function Navbar() {
 
   return (
     <nav className="border-b border-gray-200 bg-white shadow-sm">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 justify-between">
           <div className="flex">
             <div className="flex flex-shrink-0 items-center">
@@ -132,7 +132,7 @@ export default function Navbar() {
                     >
                       Stores
                     </Link>
-                    <Link
+                    {/* <Link
                       href="/admin/customers"
                       className={`px-3 py-2 rounded-md text-sm font-medium ${
                         pathname?.startsWith("/admin/customers")
@@ -141,8 +141,8 @@ export default function Navbar() {
                       }`}
                     >
                       Customers
-                    </Link>
-                    <Link
+                    </Link> */}
+                    {/* <Link
                       href="/admin/transactions"
                       className={`px-3 py-2 rounded-md text-sm font-medium ${
                         pathname?.startsWith("/admin/transactions")
@@ -151,8 +151,8 @@ export default function Navbar() {
                       }`}
                     >
                       Transactions
-                    </Link>
-                    <Link
+                    </Link> */}
+                    {/* <Link
                       href="/admin/conversations"
                       className={`px-3 py-2 rounded-md text-sm font-medium ${
                         pathname?.startsWith("/admin/conversations")
@@ -161,7 +161,7 @@ export default function Navbar() {
                       }`}
                     >
                       Conversations
-                    </Link>
+                    </Link> */}
                   </>
                 ) : (
                   <>

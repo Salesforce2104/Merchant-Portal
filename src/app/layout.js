@@ -19,17 +19,21 @@ export const metadata = {
 
 import { Toaster } from 'react-hot-toast';
 
+import Providers from "@/components/Providers";
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background flex flex-col`}
       >
-        <Navbar />
-        <main className="flex-1">
-          {children}
-        </main>
-        <Toaster position="top-right" />
+        <Providers>
+          <Navbar />
+          <main className="flex-1">
+            {children}
+          </main>
+          <Toaster position="top-right" />
+        </Providers>
       </body>
     </html>
   );

@@ -1,10 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { AdminService } from "@/services/adminService";
+import { useState } from "react";
+// import { AdminService } from "@/services/adminService"; // Replaced by hooks
+import {
+  useStores,
+  useUpdateUser,
+  useInviteMerchant,
+} from "@/hooks/useAdminData";
 import { Table, TableFilterBar, Pagination } from "@/components/ui/Table";
 import { Button } from "@/components/ui/Button";
-import { Loader2, Edit, ExternalLink, Store } from "lucide-react";
+import {
+  Loader2,
+  Edit,
+  ExternalLink,
+  Store,
+  Users,
+  FileText,
+  MessageSquare,
+} from "lucide-react";
 import Modal from "@/components/ui/Modal";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
@@ -13,8 +26,18 @@ import { useRouter } from "next/navigation";
 
 export default function StoresPage() {
   const router = useRouter();
-  const [users, setUsers] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // React Query Hooks
+  const {
+    data: usersData,
+    isLoading,
+    isError,
+    refetch,
+  } = useStores({ limit: 100 });
+  const updateUserMutation = useUpdateUser();
+  const inviteMerchantMutation = useInviteMerchant();
+
+  const users = usersData?.users || [];
+
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -23,30 +46,19 @@ export default function StoresPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [editFormData, setEditFormData] = useState({ name: "", email: "" });
-  const [isSaving, setIsSaving] = useState(false);
 
   // Invite Modal State
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [inviteFormData, setInviteFormData] = useState({ name: "", email: "" });
-  const [isInviting, setIsInviting] = useState(false);
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+  // View Data Modal State
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
-  const fetchUsers = async () => {
-    setIsLoading(true);
-    try {
-      const data = await AdminService.getUsers({ limit: 100 }); // Fetch enough for client pagination for now
-      if (data.success) {
-        setUsers(data.users);
-      }
-    } catch (error) {
-      toast.error("Failed to load stores");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // No need for useEffect -> fetchUsers anymore! React Query handles it.
+
+  if (isError) {
+    toast.error("Failed to load stores");
+  }
 
   const handleEdit = (user) => {
     setSelectedUser(user);
@@ -58,49 +70,43 @@ export default function StoresPage() {
     e.preventDefault();
     if (!selectedUser) return;
 
-    setIsSaving(true);
-    try {
-      const response = await AdminService.updateUser(
-        selectedUser._id,
-        editFormData
-      );
-      if (response.success) {
-        toast.success("Store updated successfully");
-        setIsEditModalOpen(false);
-        fetchUsers(); // Refresh list
-      } else {
-        toast.error("Failed to update store");
+    updateUserMutation.mutate(
+      { id: selectedUser._id, data: editFormData },
+      {
+        onSuccess: () => {
+          toast.success("Store updated successfully");
+          setIsEditModalOpen(false);
+        },
+        onError: () => {
+          toast.error("Failed to update store");
+        },
       }
-    } catch (error) {
-      toast.error("An error occurred while saving");
-    } finally {
-      setIsSaving(false);
-    }
+    );
   };
 
   const handleInviteSubmit = async (e) => {
     e.preventDefault();
-    setIsInviting(true);
-    try {
-      const response = await AdminService.inviteUser(inviteFormData);
-      if (response.success) {
-        toast.success(response.message || "Invitation sent successfully");
+    inviteMerchantMutation.mutate(inviteFormData, {
+      onSuccess: (data) => {
+        toast.success(data.message || "Invitation sent successfully");
         setIsInviteModalOpen(false);
         setInviteFormData({ name: "", email: "" });
-      } else {
-        toast.error(response.error || "Failed to send invitation");
-      }
-    } catch (error) {
-      toast.error("An error occurred while sending invitation");
-    } finally {
-      setIsInviting(false);
-    }
+      },
+      onError: (error) => {
+        toast.error(error.response?.data?.error || "Failed to send invitation");
+      },
+    });
   };
 
   const handleViewDashboard = (user) => {
-    // Navigate to God Mode Dashboard (Implementation TBD, possibly passing ID via query param)
-    // For now, let's route to transactions as a start
-    router.push(`/admin/transactions?merchantId=${user._id}`);
+    setSelectedUser(user);
+    setIsViewModalOpen(true);
+  };
+
+  const handleNavigateToData = (type) => {
+    if (!selectedUser) return;
+    router.push(`/admin/${type}?merchantId=${selectedUser._id}`);
+    setIsViewModalOpen(false);
   };
 
   // Filter & Pagination
@@ -134,8 +140,8 @@ export default function StoresPage() {
       <td className="px-6 py-4 whitespace-nowrap text-gray-500">
         {new Date(user.createdAt).toLocaleDateString()}
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-right">
-        <div className="flex justify-end gap-2">
+      <td className="px-6 py-4 whitespace-nowrap text-center">
+        <div className="flex justify-center gap-2">
           <Button variant="ghost" size="sm" onClick={() => handleEdit(user)}>
             <Edit className="h-4 w-4" />
           </Button>
@@ -162,14 +168,14 @@ export default function StoresPage() {
             View and manage registered merchants
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={fetchUsers} variant="outline">
+        {/* <div className="flex gap-2">
+          <Button onClick={() => refetch()} variant="outline">
             Refresh
           </Button>
           <Button onClick={() => setIsInviteModalOpen(true)}>
             Invite Merchant
           </Button>
-        </div>
+        </div> */}
       </div>
 
       <TableFilterBar
@@ -232,7 +238,7 @@ export default function StoresPage() {
             >
               Cancel
             </Button>
-            <Button type="submit" isLoading={isSaving}>
+            <Button type="submit" isLoading={updateUserMutation.isPending}>
               Save Changes
             </Button>
           </div>
@@ -283,11 +289,64 @@ export default function StoresPage() {
             >
               Cancel
             </Button>
-            <Button type="submit" isLoading={isInviting}>
+            <Button type="submit" isLoading={inviteMerchantMutation.isPending}>
               Send Invitation
             </Button>
           </div>
         </form>
+      </Modal>
+
+      {/* View Data Selection Modal */}
+      <Modal
+        isOpen={isViewModalOpen}
+        onClose={() => setIsViewModalOpen(false)}
+        title={`View Data for ${selectedUser?.name || "Merchant"}`}
+        footer={null}
+      >
+        <div className="space-y-4">
+          <p className="text-gray-600 mb-4">
+            Select which data you would like to view for this merchant:
+          </p>
+          <div className="grid grid-cols-1 gap-3">
+            <Button
+              variant="outline"
+              className="justify-start gap-3 h-12 text-lg hover:bg-blue-50 hover:border-blue-200"
+              onClick={() => handleNavigateToData("transactions")}
+            >
+              <div className="bg-blue-100 p-2 rounded-full text-blue-600">
+                <FileText className="h-4 w-4" />
+              </div>
+              View Transactions
+            </Button>
+
+            <Button
+              variant="outline"
+              className="justify-start gap-3 h-12 text-lg hover:bg-green-50 hover:border-green-200"
+              onClick={() => handleNavigateToData("customers")}
+            >
+              <div className="bg-green-100 p-2 rounded-full text-green-600">
+                <Users className="h-4 w-4" />
+              </div>
+              View Customers
+            </Button>
+
+            <Button
+              variant="outline"
+              className="justify-start gap-3 h-12 text-lg hover:bg-purple-50 hover:border-purple-200"
+              onClick={() => handleNavigateToData("conversations")}
+            >
+              <div className="bg-purple-100 p-2 rounded-full text-purple-600">
+                <MessageSquare className="h-4 w-4" />
+              </div>
+              View Conversations
+            </Button>
+          </div>
+          <div className="flex justify-end mt-6">
+            <Button variant="ghost" onClick={() => setIsViewModalOpen(false)}>
+              Cancel
+            </Button>
+          </div>
+        </div>
       </Modal>
     </div>
   );

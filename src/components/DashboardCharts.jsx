@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -14,9 +13,9 @@ import {
   LineElement,
 } from "chart.js";
 import { Bar, Doughnut, Line } from "react-chartjs-2";
-import api from "@/lib/axios";
-import { Loader2 } from "lucide-react";
+import { Loader2, DollarSign, CreditCard } from "lucide-react";
 import Badge from "@/components/ui/Badge";
+import { useTransactions, useConversations } from "@/hooks/useUserData";
 
 // Register ChartJS components
 ChartJS.register(
@@ -32,95 +31,73 @@ ChartJS.register(
 );
 
 export default function DashboardCharts() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [transactionData, setTransactionData] = useState(null);
-  const [conversationData, setConversationData] = useState(null);
-  const [recentTransactions, setRecentTransactions] = useState([]);
+  // Use hooks for data fetching
+  const { data: transactionsRes, isLoading: isTransLoading } = useTransactions({
+    limit: 50,
+  });
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        // Parallel fetch
-        const [transRes, convRes] = await Promise.all([
-          api.get("/auth/transactions", { params: { limit: 50 } }),
-          api.get("/auth/conversations", { params: { pageSize: 100 } }),
-        ]);
+  const { data: conversationsRes, isLoading: isConvLoading } = useConversations(
+    { pageSize: 100 }
+  );
 
-        if (transRes.data.success) {
-          processTransactionData(transRes.data.transactions);
-          setRecentTransactions(transRes.data.transactions.slice(0, 10));
-        }
+  const isLoading = isTransLoading || isConvLoading;
 
-        if (convRes.data.success) {
-          processConversationData(convRes.data.conversations);
-        }
-      } catch (error) {
-        console.error("Error fetching dashboard data:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const transactions = transactionsRes?.transactions || [];
+  const conversations = conversationsRes?.conversations || [];
 
-    fetchData();
-  }, []);
+  const recentConversations = conversations.slice(0, 10);
 
-  const processTransactionData = (transactions) => {
-    // Group transactions by "status" (e.g. Compliant, Failed, Pending)
-    // This avoids issues if date/amount are sparse or uniform.
-    const statusCounts = {};
-    transactions.forEach((t) => {
-      const status = t.status || "Unknown";
-      statusCounts[status] = (statusCounts[status] || 0) + 1;
-    });
+  // Process Transaction Data
+  const statusCountsTrans = {};
+  transactions.forEach((t) => {
+    const status = t.status || "Unknown";
+    statusCountsTrans[status] = (statusCountsTrans[status] || 0) + 1;
+  });
 
-    setTransactionData({
-      labels: Object.keys(statusCounts),
-      datasets: [
-        {
-          label: "Transaction Count",
-          data: Object.values(statusCounts),
-          backgroundColor: "rgba(0, 86, 210, 0.7)", // Primary Blue
-          borderColor: "rgba(0, 86, 210, 1)",
-          borderWidth: 1,
-          borderRadius: 4,
-        },
-      ],
-    });
+  const transactionData = {
+    labels: Object.keys(statusCountsTrans),
+    datasets: [
+      {
+        label: "Transaction Count",
+        data: Object.values(statusCountsTrans),
+        backgroundColor: "rgba(0, 86, 210, 0.7)", // Primary Blue
+        borderColor: "rgba(0, 86, 210, 1)",
+        borderWidth: 1,
+        borderRadius: 4,
+      },
+    ],
   };
 
-  const processConversationData = (conversations) => {
-    // Count by status
-    const statusCounts = {};
-    conversations.forEach((c) => {
-      const status = c.status || "Unknown";
-      statusCounts[status] = (statusCounts[status] || 0) + 1;
-    });
+  // Process Conversation Data
+  const statusCountsConv = {};
+  conversations.forEach((c) => {
+    const status = c.status || "Unknown";
+    statusCountsConv[status] = (statusCountsConv[status] || 0) + 1;
+  });
 
-    setConversationData({
-      labels: Object.keys(statusCounts),
-      datasets: [
-        {
-          label: "# of Conversations",
-          data: Object.values(statusCounts),
-          backgroundColor: [
-            "rgba(0, 200, 83, 0.7)", // Green (Success/Paid)
-            "rgba(255, 171, 0, 0.7)", // Amber (Pending)
-            "rgba(213, 0, 0, 0.7)", // Red (Failed)
-            "rgba(0, 150, 255, 0.7)", // Blue
-            "rgba(150, 150, 150, 0.7)", // Grey
-          ],
-          borderColor: [
-            "rgba(0, 200, 83, 1)",
-            "rgba(255, 171, 0, 1)",
-            "rgba(213, 0, 0, 1)",
-            "rgba(0, 150, 255, 1)",
-            "rgba(150, 150, 150, 1)",
-          ],
-          borderWidth: 1,
-        },
-      ],
-    });
+  const conversationData = {
+    labels: Object.keys(statusCountsConv),
+    datasets: [
+      {
+        label: "# of Conversations",
+        data: Object.values(statusCountsConv),
+        backgroundColor: [
+          "rgba(0, 200, 83, 0.7)", // Green (Success/Paid)
+          "rgba(255, 171, 0, 0.7)", // Amber (Pending)
+          "rgba(213, 0, 0, 0.7)", // Red (Failed)
+          "rgba(0, 150, 255, 0.7)", // Blue
+          "rgba(150, 150, 150, 0.7)", // Grey
+        ],
+        borderColor: [
+          "rgba(0, 200, 83, 1)",
+          "rgba(255, 171, 0, 1)",
+          "rgba(213, 0, 0, 1)",
+          "rgba(0, 150, 255, 1)",
+          "rgba(150, 150, 150, 1)",
+        ],
+        borderWidth: 1,
+      },
+    ],
   };
 
   const chartOptions = {
@@ -198,43 +175,58 @@ export default function DashboardCharts() {
         </h3>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead>
+            <thead className="bg-gray-50 text-gray-600 uppercase text-xs font-semibold tracking-wider">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-center whitespace-nowrap">
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Date
+                <th className="px-6 py-3 text-center whitespace-nowrap">
+                  Created
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Description
+                <th className="px-6 py-3 text-center whitespace-nowrap">
+                  Address(s)
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Amount
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-center whitespace-nowrap">
                   Customer Ref
+                </th>
+                <th className="px-6 py-3 text-center whitespace-nowrap">
+                  Type
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200 text-sm">
-              {recentTransactions.length > 0 ? (
-                recentTransactions.map((tx, idx) => (
+              {recentConversations.length > 0 ? (
+                recentConversations.map((conv, idx) => (
                   <tr key={idx} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <Badge status={tx.status} />
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <Badge status={conv.status} />
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-500">
-                      {tx.created}
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-500 text-center">
+                      <div className="font-medium text-gray-900">
+                        {conv.created}
+                      </div>
                     </td>
-                    <td className="px-6 py-4 font-medium text-gray-900">
-                      {tx.description}
+                    <td className="px-6 py-4 text-gray-900 text-center">
+                      {conv.address}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-900 font-bold">
-                      {tx.amount}
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-900 text-center">
+                      {conv.customerRef}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-500">
-                      {tx.customerRef}
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <div className="flex gap-2 justify-center">
+                        <div
+                          className="h-7 w-7 rounded-full bg-green-100 text-green-700 flex items-center justify-center transition-transform hover:scale-110 cursor-pointer shadow-sm border border-green-200"
+                          title="Payment"
+                        >
+                          <DollarSign className="h-4 w-4" />
+                        </div>
+                        <div
+                          className="h-7 w-7 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center transition-transform hover:scale-110 cursor-pointer shadow-sm border border-amber-200"
+                          title="Payment Method"
+                        >
+                          <CreditCard className="h-4 w-4" />
+                        </div>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -244,7 +236,7 @@ export default function DashboardCharts() {
                     colSpan="5"
                     className="px-6 py-8 text-center text-gray-500"
                   >
-                    No recent transactions found.
+                    No recent conversions found.
                   </td>
                 </tr>
               )}

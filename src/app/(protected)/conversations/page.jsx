@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Table,
   TableHeader,
@@ -9,45 +9,56 @@ import {
 } from "@/components/ui/Table";
 import { Button } from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
-import { MoreVertical, RefreshCw, Download, Loader2 } from "lucide-react";
-import api from "@/lib/axios";
+import {
+  MoreVertical,
+  RefreshCw,
+  Download,
+  Loader2,
+  DollarSign,
+  CreditCard,
+} from "lucide-react";
+// import api from "@/lib/axios";
 import toast from "react-hot-toast";
+import { useConversations } from "@/hooks/useUserData";
+import { useMerchantConversations } from "@/hooks/useAdminData";
+import { useSearchParams } from "next/navigation";
 
 export default function ConversationsPage({ customFetch }) {
+  const searchParams = useSearchParams();
+  const merchantId = searchParams.get("merchantId"); // For Admin God Mode
+  const isGodMode = !!merchantId;
+
+  // React Query Hooks
+  const {
+    data: userConversationsData,
+    isLoading: isUserLoading,
+    error: userError,
+    refetch: refetchUser,
+  } = useConversations({ pageSize: 100 });
+
+  const {
+    data: merchantConversationsData,
+    isLoading: isMerchantLoading,
+    error: merchantError,
+    refetch: refetchMerchant,
+  } = useMerchantConversations(merchantId, { pageSize: 100 });
+
+  // Consolidate data
+  const isLoading = isGodMode ? isMerchantLoading : isUserLoading;
+  const errorObj = isGodMode ? merchantError : userError;
+  const data = isGodMode ? merchantConversationsData : userConversationsData;
+  const conversations = data?.conversations || [];
+
+  console.log(conversations, "Converstino>>");
+
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [conversations, setConversations] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [itemsPerPage, setItemsPerPage] = useState(25);
 
-  useEffect(() => {
-    fetchConversations();
-  }, [customFetch]); // Add customFetch dependency
-
-  const fetchConversations = async () => {
-    setIsLoading(true);
-    try {
-      let data;
-      if (customFetch) {
-        data = await customFetch({ pageSize: 100 });
-      } else {
-        const response = await api.get("/auth/conversations", {
-          params: { pageSize: 100 },
-        });
-        data = response.data;
-      }
-
-      if (data.success) {
-        setConversations(data.conversations || []);
-      }
-    } catch (err) {
-      console.error("Failed to fetch conversations", err);
-      toast.error("Failed to load conversations");
-    } finally {
-      setIsLoading(false);
-    }
+  const handleRefresh = () => {
+    if (isGodMode) refetchMerchant();
+    else refetchUser();
   };
-
   const filteredData = conversations.filter(
     (item) =>
       (item.address &&
@@ -71,10 +82,10 @@ export default function ConversationsPage({ customFetch }) {
 
   const renderRow = (item, index) => (
     <tr key={index} className="hover:bg-gray-50 transition-colors">
-      <td className="px-6 py-4 whitespace-nowrap">
+      <td className="px-6 py-4 whitespace-nowrap text-center">
         <Badge status={item.status} />
       </td>
-      <td className="px-6 py-4 whitespace-nowrap">
+      <td className="px-6 py-4 whitespace-nowrap text-center">
         <div className="font-medium text-gray-900">{item.created}</div>
         <div className="text-xs text-gray-400">
           {item.updated && item.updated !== "N/A"
@@ -82,24 +93,30 @@ export default function ConversationsPage({ customFetch }) {
             : ""}
         </div>
       </td>
-      <td className="px-6 py-4 text-gray-900">{item.address}</td>
-      <td className="px-6 py-4 whitespace-nowrap text-gray-900">
+      <td className="px-6 py-4 text-gray-900 text-center">{item.address}</td>
+      <td className="px-6 py-4 whitespace-nowrap text-gray-900 text-center">
         {item.customerRef}
       </td>
-      <td className="px-6 py-4 whitespace-nowrap">
-        <div className="flex gap-1">
-          <div className="h-6 w-6 rounded-full bg-gray-500 text-white flex items-center justify-center text-xs font-bold">
-            $
+      <td className="px-6 py-4 whitespace-nowrap text-center">
+        <div className="flex gap-2 justify-center">
+          <div
+            className="h-7 w-7 rounded-full bg-green-100 text-green-700 flex items-center justify-center transition-transform hover:scale-110 cursor-pointer shadow-sm border border-green-200"
+            title="Payment"
+          >
+            <DollarSign className="h-4 w-4" />
           </div>
-          <div className="h-6 w-6 rounded-full bg-gray-500 text-white flex items-center justify-center text-xs">
-            ref
+          <div
+            className="h-7 w-7 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center transition-transform hover:scale-110 cursor-pointer shadow-sm border border-amber-200"
+            title="Payment Method"
+          >
+            <CreditCard className="h-4 w-4" />
           </div>
         </div>
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+      <td className="px-6 py-4 whitespace-nowrap text-gray-500 text-center">
         {item.expiration}
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+      <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
         <button className="text-gray-400 hover:text-gray-600">
           <MoreVertical className="h-4 w-4" />
         </button>
@@ -143,7 +160,7 @@ export default function ConversationsPage({ customFetch }) {
           <Button
             variant="outline"
             size="icon"
-            onClick={fetchConversations}
+            onClick={handleRefresh}
             className="bg-green-500 text-white border-none hover:bg-green-600"
           >
             <RefreshCw className="h-4 w-4" />
