@@ -94,12 +94,11 @@ export default function Navbar() {
           <div className="flex">
             <div className="flex flex-shrink-0 items-center">
               <Link href={logoHref} className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-white font-bold">
-                  M
-                </div>
-                <span className="text-xl font-bold text-gray-900">
-                  Metadologie
-                </span>
+                <img
+                  src="https://res.cloudinary.com/dx0yk0asl/image/upload/v1738736297/metadologie-logo_hbzfml.webp"
+                  alt="Metadologie"
+                  className="h-8 w-auto"
+                />
               </Link>
             </div>
             {/* Mobile menu button could go here */}

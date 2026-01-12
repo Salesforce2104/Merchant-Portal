@@ -77,7 +77,7 @@ export default function ConversationsPage({ customFetch }) {
     "Customer Ref",
     "Type",
     "Expiration",
-    "Actions",
+    // "Actions",
   ];
 
   const renderRow = (item, index) => (
@@ -116,11 +116,11 @@ export default function ConversationsPage({ customFetch }) {
       <td className="px-6 py-4 whitespace-nowrap text-gray-500 text-center">
         {item.expiration}
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+      {/* <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
         <button className="text-gray-400 hover:text-gray-600">
           <MoreVertical className="h-4 w-4" />
         </button>
-      </td>
+      </td> */}
     </tr>
   );
 
@@ -128,7 +128,7 @@ export default function ConversationsPage({ customFetch }) {
     <div className="p-8 max-w-[1600px] mx-auto">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Avenger Assemble</h1>
+          {/* <h1 className="text-2xl font-bold text-gray-900">Avenger Assemble</h1> */}
           <h2 className="text-xl font-semibold text-gray-700 mt-1">
             Conversations
           </h2>
