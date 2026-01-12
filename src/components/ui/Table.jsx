@@ -31,13 +31,13 @@ export const TableFilterBar = ({
 }) => {
   return (
     <div className="flex flex-col sm:flex-row gap-3 mb-6 bg-white p-3 rounded-xl border border-gray-200 shadow-sm">
-      {showDateRange && (
+      {/* {showDateRange && (
         <div className="flex items-center gap-2">
           <Input type="date" className="w-auto" />
           <span className="text-gray-400">-</span>
           <Input type="date" className="w-auto" />
         </div>
-      )}
+      )} */}
       <div className="relative flex-1">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
         <Input

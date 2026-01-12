@@ -90,7 +90,7 @@ export default function TransactionsPage({ customFetch }) {
     "Payment Method",
     "External Reference",
     "Type",
-    "Action",
+    // "Action",
   ];
 
   const handleDownloadPDF = (transaction) => {
@@ -202,11 +202,11 @@ export default function TransactionsPage({ customFetch }) {
           }
         />
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+      {/* <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
         <button className="text-gray-400 hover:text-gray-600">
           <MoreVertical className="h-4 w-4" />
         </button>
-      </td>
+      </td> */}
     </tr>
   );
 
@@ -214,7 +214,7 @@ export default function TransactionsPage({ customFetch }) {
     <div className="p-8 max-w-[1600px] mx-auto">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Avenger Assemble</h1>
+          {/* <h1 className="text-2xl font-bold text-gray-900">Avenger Assemble</h1> */}
           <h2 className="text-xl font-semibold text-gray-700 mt-1">
             Transactions
           </h2>
