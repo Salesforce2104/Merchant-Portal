@@ -18,6 +18,7 @@ import {
   FileText,
   MessageSquare,
 } from "lucide-react";
+import { formatDisplayData } from "@/lib/utils";
 import Modal from "@/components/ui/Modal";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
@@ -131,11 +132,11 @@ export default function StoresPage() {
           <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
             <Store className="h-4 w-4" />
           </div>
-          {user.name || "N/A"}
+          {formatDisplayData(user.name)}
         </div>
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-gray-500">
-        {user.email}
+        {formatDisplayData(user.email)}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-gray-500">
         {new Date(user.createdAt).toLocaleDateString()}
