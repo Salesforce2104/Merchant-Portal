@@ -1,46 +1,42 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { TableHeader, TableFilterBar } from "@/components/ui/Table";
 import { Button } from "@/components/ui/Button";
 import { User, Plus, Loader2 } from "lucide-react";
-import api from "@/lib/axios";
+// import api from "@/lib/axios";
 import toast from "react-hot-toast";
+import { useCustomers } from "@/hooks/useUserData";
+import { useMerchantCustomers } from "@/hooks/useAdminData";
+import { useSearchParams } from "next/navigation";
 
 export default function CustomersPage({ customFetch }) {
+  const searchParams = useSearchParams();
   const [searchTerm, setSearchTerm] = useState("");
-  const [customers, setCustomers] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const merchantId = searchParams.get("merchantId");
 
-  useEffect(() => {
-    fetchCustomers();
-  }, [searchTerm, customFetch]);
+  const isGodMode = !!merchantId;
 
-  const fetchCustomers = async () => {
-    setIsLoading(true);
-    try {
-      let data;
-      if (customFetch) {
-        data = await customFetch({ limit: 100 });
-      } else {
-        const response = await api.get("/auth/customers", {
-          params: { limit: 100 },
-        });
-        data = response.data;
-      }
+  // Hooks
+  const {
+    data: userCustomersData,
+    isLoading: isUserLoading,
+    error: userError,
+  } = useCustomers();
 
-      if (data.success) {
-        setCustomers(data.customers);
-      }
-    } catch (err) {
-      console.error("Failed to fetch customers", err);
-      setError("Failed to load customers");
-      toast.error("Could not load customers");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const {
+    data: merchantCustomersData,
+    isLoading: isMerchantLoading,
+    error: merchantError,
+  } = useMerchantCustomers(merchantId);
+
+  // Derived State
+  const isLoading = isGodMode ? isMerchantLoading : isUserLoading;
+  const errorObj = isGodMode ? merchantError : userError;
+  const data = isGodMode ? merchantCustomersData : userCustomersData;
+  const customers = data?.customers || [];
+
+  const error = errorObj ? "Failed to load customers" : null;
 
   // Client-side filtering with fallback fields
   const filteredCustomers = customers.filter((customer) => {
@@ -65,7 +61,7 @@ export default function CustomersPage({ customFetch }) {
   });
 
   return (
-    <div className="p-8 max-w-7xl mx-auto">
+    <div className="p-8 max-w-[1600px] mx-auto">
       <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 min-h-[600px]">
         <h1 className="text-2xl font-bold mb-6 text-gray-900">Conversations</h1>
 

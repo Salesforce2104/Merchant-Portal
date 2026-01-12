@@ -26,7 +26,7 @@ export default function LoginPage() {
     // If already logged in, redirect to home
     if (typeof window !== "undefined") {
       if (localStorage.getItem(AUTH_TOKEN_KEY)) {
-        router.push("/customers");
+        router.push("/");
       }
 
       // Check for remembered email
@@ -65,10 +65,10 @@ export default function LoginPage() {
           }
         }
 
-        // Redirect to customers (default home)
-        router.push("/customers");
+        // Redirect to dashboard (default home)
+        router.push("/");
         // Force refresh for navbar state
-        window.location.href = "/customers";
+        window.location.href = "/";
       } else {
         setError(response.data.error || "Login failed");
       }

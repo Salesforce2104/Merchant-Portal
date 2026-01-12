@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Table,
   TableHeader,
@@ -14,51 +14,58 @@ import { Download, MoreVertical, FileText, Loader2 } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import toast from "react-hot-toast";
-import api from "@/lib/axios";
+// import api from "@/lib/axios"; // API logic moved to hooks
+import { useTransactions } from "@/hooks/useUserData";
+import { useMerchantTransactions } from "@/hooks/useAdminData";
+import { useSearchParams } from "next/navigation";
 
 export default function TransactionsPage({ customFetch }) {
+  const searchParams = useSearchParams();
+  const merchantId = searchParams.get("merchantId"); // For Admin God Mode
+
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
-  const [transactions, setTransactions] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
   const itemsPerPage = 10;
 
-  useEffect(() => {
-    fetchTransactions();
-  }, [customFetch]); // Add customFetch to dep array
+  // Determine which hook to use
+  // If merchantId is present (Admin View), use Admin hook.
+  // Otherwise (User View), use User hook.
 
-  const fetchTransactions = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      let data;
-      if (customFetch) {
-        data = await customFetch({ limit: 100 });
-      } else {
-        const response = await api.get("/auth/transactions", {
-          params: { limit: 100 },
-        });
-        data = response.data;
-      }
+  // Note: customFetch prop was the previous pattern, we can now rely on merchantId or valid auth context
+  // But to be safe and cleaner, let's just use the merchantId check since that governs the "God Mode"
 
-      if (data.success) {
-        setTransactions(data.transactions || []); // Guard against undefined
-      } else {
-        setError(data.error || "Failed to load transactions");
-      }
-    } catch (err) {
-      console.error("Failed to fetch transactions", err);
-      const errorMessage =
-        err.response?.data?.error ||
-        err.response?.data?.details ||
-        "Failed to load transactions. The merchant may not have Authvia credentials configured.";
-      setError(errorMessage);
-      toast.error("Failed to load transactions");
-    } finally {
-      setIsLoading(false);
-    }
+  const isGodMode = !!merchantId;
+
+  const {
+    data: userTransactionsData,
+    isLoading: isUserLoading,
+    error: userError,
+    refetch: refetchUser,
+  } = useTransactions({ limit: 100 });
+
+  const {
+    data: merchantTransactionsData,
+    isLoading: isMerchantLoading,
+    error: merchantError,
+    refetch: refetchMerchant,
+  } = useMerchantTransactions(merchantId, { limit: 100 });
+
+  // Consolidate data based on mode
+  const isLoading = isGodMode ? isMerchantLoading : isUserLoading;
+  const errorObj = isGodMode ? merchantError : userError;
+  const data = isGodMode ? merchantTransactionsData : userTransactionsData;
+  const transactions = data?.transactions || [];
+
+  console.log(transactions, "transactionsss");
+  const errorMessage =
+    errorObj?.response?.data?.error ||
+    errorObj?.response?.data?.details ||
+    (typeof errorObj === "string" ? errorObj : null);
+
+  const handleRetry = () => {
+    if (isGodMode) refetchMerchant();
+    else refetchUser();
   };
 
   // Filter Data Client-Side
@@ -77,7 +84,6 @@ export default function TransactionsPage({ customFetch }) {
 
   const headers = [
     "Status",
-    "Created",
     "Description",
     "Customer Ref",
     "Amount",
@@ -103,12 +109,34 @@ export default function TransactionsPage({ customFetch }) {
 
     // Transaction Details Table
     const tableData = [
-      ["Date", transaction.created],
+      ["Date", transaction.created === "N/A" ? " " : transaction.created],
       ["Description", transaction.description],
-      ["Amount", transaction.amount],
-      ["Status", transaction.status],
-      ["Payment Method", transaction.paymentMethod],
-      ["Type", transaction.type],
+      [
+        "Amount",
+        typeof transaction.amount === "object"
+          ? transaction.amount?.value || transaction.amount?.amount || 0
+          : transaction.amount,
+      ],
+      [
+        "Status",
+        typeof transaction.status === "object"
+          ? transaction.status?.label || transaction.status?.name || "Unknown"
+          : transaction.status,
+      ],
+      [
+        "Payment Method",
+        typeof transaction.paymentMethod === "object"
+          ? transaction.paymentMethod?.id ||
+            transaction.paymentMethod?.type ||
+            "N/A"
+          : transaction.paymentMethod,
+      ],
+      [
+        "Type",
+        typeof transaction.type === "object"
+          ? transaction.type?.label || transaction.type?.name || "Unknown"
+          : transaction.type,
+      ],
     ];
 
     autoTable(doc, {
@@ -133,31 +161,48 @@ export default function TransactionsPage({ customFetch }) {
       className="hover:bg-gray-50 transition-colors cursor-pointer"
       onClick={() => openDetails(item)}
     >
-      <td className="px-6 py-4 whitespace-nowrap">
-        <Badge status={item.status} />
+      <td className="px-6 py-4 whitespace-nowrap text-center">
+        <Badge
+          status={
+            typeof item.status === "object"
+              ? item.status?.label || item.status?.name || "Unknown"
+              : item.status
+          }
+        />
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+      {/* <td className="px-6 py-4 whitespace-nowrap text-gray-500">
         {item.created}
-      </td>
-      <td className="px-6 py-4 text-gray-900 font-medium">
+      </td> */}
+      <td className="px-6 py-4 text-gray-900 font-medium text-center">
         {item.description}
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+      <td className="px-6 py-4 whitespace-nowrap text-gray-500 text-center">
         {item.customerRef}
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-gray-900 font-medium">
-        {item.amount}
+      <td className="px-6 py-4 whitespace-nowrap text-gray-900 font-medium text-center">
+        {typeof item.amount === "object"
+          ? item.amount?.value || item.amount?.amount || 0
+          : item.amount}
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-gray-500">
-        {item.paymentMethod}
+      <td className="px-6 py-4 whitespace-nowrap text-gray-500 text-center">
+        {/* Handle if paymentMethod is an object */}
+        {typeof item.paymentMethod === "object"
+          ? item.paymentMethod?.id || item.paymentMethod?.type || "N/A"
+          : item.paymentMethod}
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+      <td className="px-6 py-4 whitespace-nowrap text-gray-500 text-center">
         {item.externalReference}
       </td>
-      <td className="px-6 py-4 whitespace-nowrap">
-        <Badge status={item.type} />
+      <td className="px-6 py-4 whitespace-nowrap text-center">
+        <Badge
+          status={
+            typeof item.type === "object"
+              ? item.type?.label || item.type?.name || "Unknown"
+              : item.type
+          }
+        />
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+      <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
         <button className="text-gray-400 hover:text-gray-600">
           <MoreVertical className="h-4 w-4" />
         </button>
@@ -194,7 +239,7 @@ export default function TransactionsPage({ customFetch }) {
         <div className="flex justify-center py-20">
           <Loader2 className="h-10 w-10 animate-spin text-primary" />
         </div>
-      ) : error ? (
+      ) : errorMessage ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <div className="h-12 w-12 rounded-full bg-red-100 flex items-center justify-center text-red-600 mb-4">
             <FileText className="h-6 w-6" />
@@ -203,15 +248,10 @@ export default function TransactionsPage({ customFetch }) {
             Unable to Load Transactions
           </h3>
           <p className="text-gray-500 max-w-md">
-            {typeof error === "string"
-              ? error
-              : "The merchant may not have Authvia credentials configured, or there was a connection issue."}
+            {errorMessage ||
+              "The merchant may not have Authvia credentials configured, or there was a connection issue."}
           </p>
-          <Button
-            variant="outline"
-            className="mt-4"
-            onClick={fetchTransactions}
-          >
+          <Button variant="outline" className="mt-4" onClick={handleRetry}>
             Try Again
           </Button>
         </div>
@@ -247,18 +287,30 @@ export default function TransactionsPage({ customFetch }) {
             <div className="flex justify-between border-b pb-2">
               <span className="text-gray-500">Amount</span>
               <span className="font-bold text-xl">
-                {selectedTransaction.amount}
+                {typeof selectedTransaction.amount === "object"
+                  ? selectedTransaction.amount?.value ||
+                    selectedTransaction.amount?.amount ||
+                    0
+                  : selectedTransaction.amount}
               </span>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-gray-500">Status</p>
-                <Badge status={selectedTransaction.status} />
+                <Badge
+                  status={
+                    typeof selectedTransaction.status === "object"
+                      ? selectedTransaction.status?.label ||
+                        selectedTransaction.status?.name ||
+                        "Unknown"
+                      : selectedTransaction.status
+                  }
+                />
               </div>
-              <div>
+              {/* <div>
                 <p className="text-sm text-gray-500">Date</p>
                 <p className="font-medium">{selectedTransaction.created}</p>
-              </div>
+              </div> */}
               <div className="col-span-2">
                 <p className="text-sm text-gray-500">Description</p>
                 <p className="font-medium">{selectedTransaction.description}</p>
@@ -267,10 +319,14 @@ export default function TransactionsPage({ customFetch }) {
                 <p className="text-sm text-gray-500">Customer Ref</p>
                 <p className="font-medium">{selectedTransaction.customerRef}</p>
               </div>
-              <div>
+              <div className="col-span-4">
                 <p className="text-sm text-gray-500">Payment Method</p>
                 <p className="font-medium">
-                  {selectedTransaction.paymentMethod}
+                  {typeof selectedTransaction.paymentMethod === "object"
+                    ? selectedTransaction.paymentMethod?.id ||
+                      selectedTransaction.paymentMethod?.type ||
+                      "N/A"
+                    : selectedTransaction.paymentMethod}
                 </p>
               </div>
             </div>
