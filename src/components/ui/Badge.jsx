@@ -5,7 +5,7 @@ const Badge = ({ status, className }) => {
 
   switch (status?.toLowerCase()) {
     case "resolved":
-      variantClass = "bg-green-500 text-white";
+      variantClass = "bg-[#1F3C88] text-white";
       break;
     case "in-progress":
     case "in progress":

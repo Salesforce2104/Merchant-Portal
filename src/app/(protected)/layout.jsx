@@ -4,10 +4,12 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AUTH_TOKEN_KEY } from "@/lib/constants";
 import Loader from "@/components/ui/Loader";
+import PasswordResetNotification from "@/components/PasswordResetNotification";
 
 export default function DashboardLayout({ children }) {
   const router = useRouter();
   const [authorized, setAuthorized] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
     // Check for auth token
@@ -20,6 +22,15 @@ export default function DashboardLayout({ children }) {
       router.push("/auth/login");
     } else {
       setAuthorized(true);
+      // Try to get user data for notification
+      try {
+        const userData = localStorage.getItem("user");
+        if (userData) {
+          setCurrentUser(JSON.parse(userData));
+        }
+      } catch (e) {
+        console.error("Layout: Failed to parse user data", e);
+      }
     }
   }, [router]);
 
@@ -32,5 +43,10 @@ export default function DashboardLayout({ children }) {
     );
   }
 
-  return <>{children}</>;
+  return (
+    <div className="min-h-screen bg-gray-50/30 relative">
+      <PasswordResetNotification user={currentUser} />
+      {children}
+    </div>
+  );
 }

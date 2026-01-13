@@ -80,7 +80,7 @@ function SignupPage() {
         setIsValidToken(false);
         setTokenError(
           err.response?.data?.error ||
-            "Could not verify invitation. Please try again."
+          "Could not verify invitation. Please try again."
         );
       }
     };
@@ -143,7 +143,7 @@ function SignupPage() {
       console.error("Signup error:", err);
       setError(
         err.response?.data?.error ||
-          "An unexpected error occurred. Please try again."
+        "An unexpected error occurred. Please try again."
       );
     } finally {
       setIsLoading(false);
@@ -155,10 +155,17 @@ function SignupPage() {
   // Loading state while verifying token
   if (isValidToken === null) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-[#1F3C88]">
         <div className="text-center">
-          <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto" />
-          <p className="mt-4 text-gray-500">Verifying your invitation...</p>
+          <div className="mx-auto mb-6">
+            <img
+              src="https://res.cloudinary.com/dx0yk0asl/image/upload/v1738736297/metadologie-logo_hbzfml.webp"
+              alt="Metadologie"
+              className="h-12 mx-auto brightness-0 invert"
+            />
+          </div>
+          <Loader2 className="h-10 w-10 animate-spin text-white mx-auto" />
+          <p className="mt-4 text-white/80">Verifying your invitation...</p>
         </div>
       </div>
     );
@@ -167,8 +174,15 @@ function SignupPage() {
   // Invalid/No token state
   if (!isValidToken) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
-        <div className="w-full max-w-md text-center rounded-xl bg-white p-10 shadow-lg border border-gray-100">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-[#1F3C88] px-4">
+        <div className="w-full max-w-md text-center rounded-2xl bg-white p-10 shadow-2xl">
+          <div className="mx-auto mb-6">
+            <img
+              src="https://res.cloudinary.com/dx0yk0asl/image/upload/v1738736297/metadologie-logo_hbzfml.webp"
+              alt="Metadologie"
+              className="h-12 mx-auto"
+            />
+          </div>
           <div className="mx-auto h-16 w-16 rounded-full bg-red-100 flex items-center justify-center text-red-600 mb-6">
             <ShieldOff className="h-8 w-8" />
           </div>
@@ -186,17 +200,25 @@ function SignupPage() {
 
   // Valid token - render signup form
   return (
-    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
-      <div className="w-full max-w-xl space-y-8 rounded-xl bg-white p-8 shadow-lg border border-gray-100">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-[#1F3C88] px-4 py-12 sm:px-6 lg:px-8">
+      <div className="w-full max-w-xl space-y-6 rounded-2xl bg-white p-8 shadow-2xl">
         <div className="text-center">
-          <h2 className="text-3xl font-bold tracking-tight text-gray-900">
-            Create an account
+          {/* Metadologie Logo - Big */}
+          <div className="mx-auto mb-6">
+            <img
+              src="https://res.cloudinary.com/dx0yk0asl/image/upload/v1738736297/metadologie-logo_hbzfml.webp"
+              alt="Metadologie"
+              className="h-14 mx-auto"
+            />
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900">
+            Create your account
           </h2>
-          <p className="mt-2 text-sm text-gray-600">
+          <p className="mt-1 text-sm text-gray-500">
             Already have an account?{" "}
             <Link
               href="/auth/login"
-              className="font-medium text-primary hover:text-primary/90 transition-colors"
+              className="font-medium text-[#1F3C88] hover:text-[#1F3C88]/80 transition-colors"
             >
               Sign in
             </Link>
@@ -244,8 +266,8 @@ function SignupPage() {
                 value={formData.email}
                 onChange={handleChange}
                 className="mt-1"
-                // Optional: disable if email was prefilled from invite
-                // disabled={!!formData.email && token}
+              // Optional: disable if email was prefilled from invite
+              // disabled={!!formData.email && token}
               />
             </div>
 

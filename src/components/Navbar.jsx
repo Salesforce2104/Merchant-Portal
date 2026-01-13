@@ -19,8 +19,8 @@ export default function Navbar() {
     pathname?.startsWith(route)
   );
 
-  useEffect(() => {
-    // Check for token to determine auth state (simple check)
+  // Function to load user data from localStorage
+  const loadUserData = () => {
     if (typeof window !== "undefined") {
       const userToken = localStorage.getItem(AUTH_TOKEN_KEY);
       const adminToken = localStorage.getItem(ADMIN_AUTH_TOKEN_KEY);
@@ -45,8 +45,35 @@ export default function Navbar() {
             console.error("Failed to parse user data", e);
           }
         }
+      } else {
+        setUser(null);
       }
     }
+  };
+
+  useEffect(() => {
+    // Initial load
+    loadUserData();
+
+    // Listen for storage changes (when localStorage is updated)
+    const handleStorageChange = (e) => {
+      if (e.key === "admin_user" || e.key === "user") {
+        loadUserData();
+      }
+    };
+
+    // Listen for custom profile-updated event
+    const handleProfileUpdate = () => {
+      loadUserData();
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    window.addEventListener("profile-updated", handleProfileUpdate);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("profile-updated", handleProfileUpdate);
+    };
   }, [pathname]); // Re-check on route change
 
   const handleLogout = () => {
@@ -81,9 +108,7 @@ export default function Navbar() {
   const isAdminUser =
     user?.role?.includes("admin") ||
     user?.email?.includes("admin") ||
-    (typeof window !== "undefined" &&
-      localStorage.getItem(ADMIN_AUTH_TOKEN_KEY) &&
-      !localStorage.getItem(AUTH_TOKEN_KEY));
+    user?.email?.includes("admin");
 
   const logoHref = isAdminUser ? "/admin/dashboard" : "/";
 
@@ -97,7 +122,7 @@ export default function Navbar() {
                 <img
                   src="https://res.cloudinary.com/dx0yk0asl/image/upload/v1738736297/metadologie-logo_hbzfml.webp"
                   alt="Metadologie"
-                  className="h-8 w-auto"
+                  className="h-12 w-auto"
                 />
               </Link>
             </div>
@@ -109,25 +134,23 @@ export default function Navbar() {
               <>
                 {/* Logic to determine if Admin or User links should be shown */}
                 {user?.role?.includes("admin") ||
-                user?.email?.includes("admin") ? ( // Simple check for now, can be cleaner
+                  user?.email?.includes("admin") ? ( // Simple check for now, can be cleaner
                   <>
                     <Link
                       href="/admin/dashboard"
-                      className={`px-3 py-2 rounded-md text-sm font-medium ${
-                        pathname === "/admin/dashboard"
-                          ? "bg-gray-100 text-gray-900"
-                          : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-                      }`}
+                      className={`px-3 py-2 rounded-md text-sm font-medium ${pathname === "/admin/dashboard"
+                        ? "bg-gray-100 text-gray-900"
+                        : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                        }`}
                     >
                       Dashboard
                     </Link>
                     <Link
                       href="/admin/stores"
-                      className={`px-3 py-2 rounded-md text-sm font-medium ${
-                        pathname?.startsWith("/admin/stores")
-                          ? "bg-gray-100 text-gray-900"
-                          : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-                      }`}
+                      className={`px-3 py-2 rounded-md text-sm font-medium ${pathname?.startsWith("/admin/stores")
+                        ? "bg-gray-100 text-gray-900"
+                        : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                        }`}
                     >
                       Stores
                     </Link>
@@ -166,31 +189,28 @@ export default function Navbar() {
                   <>
                     <Link
                       href="/customers"
-                      className={`px-3 py-2 rounded-md text-sm font-medium ${
-                        pathname?.startsWith("/customers")
-                          ? "bg-gray-100 text-gray-900"
-                          : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-                      }`}
+                      className={`px-3 py-2 rounded-md text-sm font-medium ${pathname?.startsWith("/customers")
+                        ? "bg-gray-100 text-gray-900"
+                        : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                        }`}
                     >
                       Customers
                     </Link>
                     <Link
                       href="/transactions"
-                      className={`px-3 py-2 rounded-md text-sm font-medium ${
-                        pathname?.startsWith("/transactions")
-                          ? "bg-gray-100 text-gray-900"
-                          : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-                      }`}
+                      className={`px-3 py-2 rounded-md text-sm font-medium ${pathname?.startsWith("/transactions")
+                        ? "bg-gray-100 text-gray-900"
+                        : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                        }`}
                     >
                       Transactions
                     </Link>
                     <Link
                       href="/conversations"
-                      className={`px-3 py-2 rounded-md text-sm font-medium ${
-                        pathname?.startsWith("/conversations")
-                          ? "bg-gray-100 text-gray-900"
-                          : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-                      }`}
+                      className={`px-3 py-2 rounded-md text-sm font-medium ${pathname?.startsWith("/conversations")
+                        ? "bg-gray-100 text-gray-900"
+                        : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                        }`}
                     >
                       Conversations
                     </Link>
@@ -198,7 +218,11 @@ export default function Navbar() {
                 )}
 
                 <div className="ml-4 border-l pl-4 border-gray-200">
-                  <ProfileMenu user={user} onLogout={handleLogout} />
+                  <ProfileMenu
+                    user={user}
+                    onLogout={handleLogout}
+                    profileLink={isAdminUser ? "/admin/profile" : "/auth/profile"}
+                  />
                 </div>
               </>
             ) : (

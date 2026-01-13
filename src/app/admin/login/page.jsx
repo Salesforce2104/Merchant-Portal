@@ -1,20 +1,25 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import api from "@/lib/axios";
 import { ADMIN_AUTH_TOKEN_KEY } from "@/lib/constants";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
-import { Loader2, AlertCircle, Eye, EyeOff } from "lucide-react";
+import { Loader2, AlertCircle, Eye, EyeOff, CheckCircle2 } from "lucide-react";
+import toast from "react-hot-toast";
 
-export default function AdminLoginPage() {
+function AdminLoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const verified = searchParams.get("verified");
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
   const [formData, setFormData] = useState({
     email: "",
@@ -38,7 +43,15 @@ export default function AdminLoginPage() {
         setRememberMe(true);
       }
     }
-  }, [router]);
+
+    // Check for verified query param
+    if (verified === "true") {
+      setSuccessMessage("Email verified successfully! You can now log in.");
+      toast.success("Email verified successfully!");
+      // Clean up the URL
+      window.history.replaceState({}, "", "/admin/login");
+    }
+  }, [router, verified]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -82,17 +95,22 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8 rounded-xl bg-white p-8 shadow-lg border border-gray-100">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-[#1F3C88] px-4 py-12 sm:px-6 lg:px-8">
+      <div className="w-full max-w-md space-y-8 rounded-2xl bg-white p-8 shadow-2xl">
         <div className="text-center">
-          <div className="mx-auto h-12 w-12 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xl mb-4">
-            A
+          {/* Metadologie Logo - Big */}
+          <div className="mx-auto mb-8">
+            <img
+              src="https://res.cloudinary.com/dx0yk0asl/image/upload/v1738736297/metadologie-logo_hbzfml.webp"
+              alt="Metadologie"
+              className="h-16 mx-auto"
+            />
           </div>
-          <h2 className="text-3xl font-bold tracking-tight text-gray-900">
+          <h2 className="text-2xl font-bold tracking-tight text-gray-900">
             Admin Portal
           </h2>
-          <p className="mt-2 text-sm text-gray-600">
-            Please sign in to access the dashboard
+          <p className="mt-2 text-sm text-gray-500">
+            Sign in to access the admin dashboard
           </p>
         </div>
 
@@ -158,8 +176,21 @@ export default function AdminLoginPage() {
                   Remember me
                 </label>
               </div>
+              <a
+                href="/admin/auth/forgot-password"
+                className="text-sm font-medium text-[#1F3C88] hover:underline"
+              >
+                Forgot password?
+              </a>
             </div>
           </div>
+
+          {successMessage && (
+            <div className="flex items-center gap-2 rounded-md bg-green-50 p-3 text-sm text-green-600">
+              <CheckCircle2 className="h-4 w-4" />
+              <span>{successMessage}</span>
+            </div>
+          )}
 
           {error && (
             <div className="flex items-center gap-2 rounded-md bg-red-50 p-3 text-sm text-red-600">
@@ -174,5 +205,17 @@ export default function AdminLoginPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function AdminLoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-[#1F3C88]" />
+      </div>
+    }>
+      <AdminLoginForm />
+    </Suspense>
   );
 }

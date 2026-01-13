@@ -25,7 +25,7 @@ export function useUser(userId) {
     });
 }
 
-// Mutation to update user
+// Mutation to update user (OTHER users/merchants)
 export function useUpdateUser() {
     const queryClient = useQueryClient();
 
@@ -38,6 +38,13 @@ export function useUpdateUser() {
                 queryClient.invalidateQueries(["admin", "users", variables.id]);
             }
         },
+    });
+}
+
+// Mutation to update Admin's OWN profile (uses /me endpoint)
+export function useUpdateAdminProfile() {
+    return useMutation({
+        mutationFn: (data) => AdminService.updateAdminProfile(data),
     });
 }
 
@@ -71,5 +78,13 @@ export function useMerchantConversations(merchantId, params = {}) {
         queryKey: ["admin", "conversations", merchantId, params],
         queryFn: () => AdminService.getMerchantConversations(merchantId, params),
         enabled: !!merchantId,
+    });
+}
+
+// Global Stats
+export function useAllTransactions(params = {}) {
+    return useQuery({
+        queryKey: ["admin", "allTransactions", params],
+        queryFn: () => AdminService.getAllTransactions(params),
     });
 }

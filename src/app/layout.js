@@ -21,6 +21,8 @@ import { Toaster } from 'react-hot-toast';
 
 import Providers from "@/components/Providers";
 
+import Footer from "@/components/Footer";
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
@@ -32,6 +34,7 @@ export default function RootLayout({ children }) {
           <main className="flex-1">
             {children}
           </main>
+          <Footer />
           <Toaster position="top-right" />
         </Providers>
       </body>

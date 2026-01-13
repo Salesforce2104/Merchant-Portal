@@ -13,15 +13,17 @@ const api = axios.create({
 api.interceptors.request.use(
     (config) => {
         if (typeof window !== 'undefined') {
-            // Check for User Token first, then Admin Token
-            // This assumes a user is logged in as one or the other, or if both, User takes precedence for now
-            // But actually, if we are on an admin page, we might want admin token.
-            // Since we don't pass context easily here without complexity, 
-            // and we separated logic:
-            // - User login clears Admin token? No, smart navbar clears clear both on logout.
-            // Let's grab whichever exists.
+            // Detect if we're on an admin route based on URL path
+            const isAdminRoute = window.location.pathname.startsWith('/admin');
 
-            const token = localStorage.getItem(AUTH_TOKEN_KEY) || localStorage.getItem(ADMIN_AUTH_TOKEN_KEY);
+            let token;
+            if (isAdminRoute) {
+                // For admin routes, prefer Admin token
+                token = localStorage.getItem(ADMIN_AUTH_TOKEN_KEY) || localStorage.getItem(AUTH_TOKEN_KEY);
+            } else {
+                // For other routes, prefer User token
+                token = localStorage.getItem(AUTH_TOKEN_KEY) || localStorage.getItem(ADMIN_AUTH_TOKEN_KEY);
+            }
 
             if (token) {
                 config.headers.Authorization = `Bearer ${token}`;

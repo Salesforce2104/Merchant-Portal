@@ -76,7 +76,7 @@ export default function LoginPage() {
       console.error("Login error:", err);
       setError(
         err.response?.data?.error ||
-          "An unexpected error occurred. Please try again."
+        "An unexpected error occurred. Please try again."
       );
     } finally {
       setIsLoading(false);
@@ -84,12 +84,23 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8 rounded-xl bg-white p-8 shadow-lg border border-gray-100">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-[#1F3C88] px-4 py-12 sm:px-6 lg:px-8">
+      <div className="w-full max-w-md space-y-8 rounded-2xl bg-white p-8 shadow-2xl">
         <div className="text-center">
-          <h2 className="text-3xl font-bold tracking-tight text-gray-900">
-            Sign in to your account
+          {/* Metadologie Logo - Big */}
+          <div className="mx-auto mb-8">
+            <img
+              src="https://res.cloudinary.com/dx0yk0asl/image/upload/v1738736297/metadologie-logo_hbzfml.webp"
+              alt="Metadologie"
+              className="h-16 mx-auto"
+            />
+          </div>
+          <h2 className="text-2xl font-bold tracking-tight text-gray-900">
+            Merchant Portal
           </h2>
+          <p className="mt-2 text-sm text-gray-500">
+            Sign in to access your dashboard
+          </p>
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
@@ -157,8 +168,8 @@ export default function LoginPage() {
 
               <div className="text-sm">
                 <a
-                  href="#"
-                  className="font-medium text-primary hover:text-primary/90"
+                  href="/auth/forgot-password"
+                  className="text-sm font-medium text-[#1F3C88] hover:underline"
                 >
                   Forgot password?
                 </a>

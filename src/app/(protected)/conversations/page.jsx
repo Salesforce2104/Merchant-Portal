@@ -103,13 +103,13 @@ export default function ConversationsPage({ customFetch }) {
       <td className="px-6 py-4 whitespace-nowrap text-center">
         <div className="flex gap-2 justify-center">
           <div
-            className="h-7 w-7 rounded-full bg-green-100 text-green-700 flex items-center justify-center transition-transform hover:scale-110 cursor-pointer shadow-sm border border-green-200"
+            className="h-7 w-7 rounded-full bg-blue-50 text-[#1F3C88] flex items-center justify-center transition-transform hover:scale-110 cursor-pointer shadow-sm border border-blue-100"
             title="Payment"
           >
             <DollarSign className="h-4 w-4" />
           </div>
           <div
-            className="h-7 w-7 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center transition-transform hover:scale-110 cursor-pointer shadow-sm border border-amber-200"
+            className="h-7 w-7 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center transition-transform hover:scale-110 cursor-pointer shadow-sm border border-blue-200"
             title="Payment Method"
           >
             <CreditCard className="h-4 w-4" />
@@ -164,7 +164,7 @@ export default function ConversationsPage({ customFetch }) {
             variant="outline"
             size="icon"
             onClick={handleRefresh}
-            className="bg-green-500 text-white border-none hover:bg-green-600"
+            className="bg-[#1F3C88] text-white border-none hover:bg-[#1F3C88]/90"
           >
             <RefreshCw className="h-4 w-4" />
           </Button>
