@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { AUTH_TOKEN_KEY } from '@/lib/constants';
 import DashboardCharts from '@/components/DashboardCharts';
+import PasswordResetNotification from '@/components/PasswordResetNotification';
 
 export default function Home() {
   const [user, setUser] = useState(null);
@@ -24,8 +25,9 @@ export default function Home() {
 
   if (user) {
     return (
-      <div className="min-h-[calc(100vh-4rem)] bg-gray-50/50 p-8">
+      <div className="min-h-[calc(100vh-4rem)] bg-gray-50/50 p-8 relative">
         <div className="max-w-[1600px] mx-auto space-y-8">
+          <PasswordResetNotification user={user} />
           <div className="flex justify-between items-end">
             <div>
               <h1 className="text-3xl font-extrabold text-gray-900">Dashboard</h1>

@@ -124,6 +124,25 @@ export default function DashboardCharts() {
     },
   };
 
+  const doughnutOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: "top",
+      },
+      title: {
+        display: true,
+        text: "Distribution by Status",
+      },
+    },
+    maintainAspectRatio: false,
+    scales: {
+      x: { display: false },
+      y: { display: false }
+    },
+    cutout: "70%",
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -157,9 +176,28 @@ export default function DashboardCharts() {
           <h3 className="text-lg font-semibold mb-4 text-gray-900">
             Conversation Status Distribution
           </h3>
-          <div className="h-[300px] flex justify-center">
+          <div className="h-[300px] flex justify-center relative">
             {conversationData ? (
-              <Doughnut options={chartOptions} data={conversationData} />
+              <Doughnut options={doughnutOptions} data={{
+                ...conversationData,
+                datasets: conversationData.datasets.map(ds => ({
+                  ...ds,
+                  backgroundColor: [
+                    "rgba(31, 60, 136, 0.8)", // Navy Blue (Brand - Resolved)
+                    "rgba(14, 165, 233, 0.8)", // Sky Blue (In Progress)
+                    "rgba(213, 0, 0, 0.7)", // Red
+                    "rgba(59, 130, 246, 0.7)", // Blue
+                    "rgba(150, 150, 150, 0.7)", // Grey
+                  ],
+                  borderColor: [
+                    "rgba(31, 60, 136, 1)",
+                    "rgba(14, 165, 233, 1)",
+                    "rgba(213, 0, 0, 1)",
+                    "rgba(59, 130, 246, 1)",
+                    "rgba(150, 150, 150, 1)",
+                  ]
+                }))
+              }} />
             ) : (
               <p className="text-center mt-10 text-gray-400">
                 No data available
@@ -222,7 +260,7 @@ export default function DashboardCharts() {
                           <DollarSign className="h-4 w-4" />
                         </div>
                         <div
-                          className="h-7 w-7 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center transition-transform hover:scale-110 cursor-pointer shadow-sm border border-amber-200"
+                          className="h-7 w-7 rounded-full bg-blue-50 text-[#1F3C88] flex items-center justify-center transition-transform hover:scale-110 cursor-pointer shadow-sm border border-blue-100"
                           title="Payment Method"
                         >
                           <CreditCard className="h-4 w-4" />

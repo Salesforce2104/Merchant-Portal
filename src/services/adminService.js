@@ -32,14 +32,81 @@ export const AdminService = {
         }
     },
 
-    // Update user
+    // Update user (for editing OTHER users/merchants)
     updateUser: async (id, data) => {
         console.log('[AdminService] updateUser called', { id, data });
+        console.log(`[AdminService] URL: ${ADMIN_API_BASE}/users/${id}`);
         try {
             const response = await api.put(`${ADMIN_API_BASE}/users/${id}`, data);
             return response.data;
         } catch (error) {
             console.error(`AdminService.updateUser error for ${id}:`, error.response?.data || error.message);
+            throw error;
+        }
+    },
+
+    // Update Admin's OWN profile (uses /me endpoint, ID from token)
+    updateAdminProfile: async (data) => {
+        console.log('[AdminService] updateAdminProfile called', data);
+        try {
+            const response = await api.put(`${ADMIN_API_BASE}/me`, data);
+            return response.data;
+        } catch (error) {
+            console.error('AdminService.updateAdminProfile error:', error.response?.data || error.message);
+            throw error;
+        }
+    },
+
+    // Get Admin's OWN profile (fetches fresh data from backend)
+    getAdminProfile: async () => {
+        console.log('[AdminService] getAdminProfile called');
+        try {
+            const response = await api.get(`${ADMIN_API_BASE}/me`);
+            return response.data;
+        } catch (error) {
+            console.error('AdminService.getAdminProfile error:', error.response?.data || error.message);
+            throw error;
+        }
+    },
+
+    // Change Admin's password
+    changeAdminPassword: async ({ currentPassword, newPassword }) => {
+        console.log('[AdminService] changeAdminPassword called');
+        try {
+            const response = await api.post(`${ADMIN_API_BASE}/change-password`, {
+                currentPassword,
+                newPassword
+            });
+            return response.data;
+        } catch (error) {
+            console.error('AdminService.changeAdminPassword error:', error.response?.data || error.message);
+            throw error;
+        }
+    },
+
+    // Forgot password - initiate reset
+    forgotPassword: async (email) => {
+        console.log('[AdminService] forgotPassword called', email);
+        try {
+            const response = await api.post(`${ADMIN_API_BASE}/forgot-password`, { email });
+            return response.data;
+        } catch (error) {
+            console.error('AdminService.forgotPassword error:', error.response?.data || error.message);
+            throw error;
+        }
+    },
+
+    // Reset password with token
+    resetPassword: async ({ token, newPassword }) => {
+        console.log('[AdminService] resetPassword called');
+        try {
+            const response = await api.post(`${ADMIN_API_BASE}/reset-password`, {
+                token,
+                newPassword
+            });
+            return response.data;
+        } catch (error) {
+            console.error('AdminService.resetPassword error:', error.response?.data || error.message);
             throw error;
         }
     },
@@ -91,6 +158,24 @@ export const AdminService = {
             return response.data;
         } catch (error) {
             console.error(`AdminService.getMerchantConversations error for ${merchantId}:`, error.response?.data || error.message);
+            throw error;
+        }
+    },
+
+    // --- Aggregated Data ---
+
+    // Get ALL transactions (system wide)
+    getAllTransactions: async (params = {}) => {
+        console.log('[AdminService] getAllTransactions called', params);
+        try {
+            // Attempt to hit the admin transactions endpoint
+            // Assuming strict pattern: /admin/auth/transactions OR /admin/transactions
+            // Based on base: /admin/auth
+            const response = await api.get(`${ADMIN_API_BASE}/transactions`, { params });
+            return response.data;
+        } catch (error) {
+            console.error('AdminService.getAllTransactions error:', error.response?.data || error.message);
+            // Fallback or empty return if route doesn't exist, but we assume it does based on user query
             throw error;
         }
     }

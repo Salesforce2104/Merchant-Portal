@@ -6,7 +6,7 @@ import { ADMIN_AUTH_TOKEN_KEY } from "@/lib/constants";
 import { Button } from "@/components/ui/Button";
 
 // import { AdminService } from "@/services/adminService";
-import { useStores } from "@/hooks/useAdminData";
+import { useStores, useAllTransactions } from "@/hooks/useAdminData";
 import AdminDashboardCharts from "@/components/AdminDashboardCharts";
 import { Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
@@ -17,8 +17,12 @@ export default function AdminDashboard() {
 
   // React Query Hook
   // We need many users for valid stats, so we request a higher limit
-  const { data: usersData, isLoading, error } = useStores({ limit: 1000 });
+  const { data: usersData, isLoading: isLoadingUsers, error } = useStores({ limit: 1000 });
+  const { data: transactionsData, isLoading: isLoadingTx } = useAllTransactions();
+
   const users = usersData?.users || [];
+  const transactions = transactionsData || []; // Assuming array return
+  const isLoading = isLoadingUsers || isLoadingTx;
 
   useEffect(() => {
     // Basic auth check
@@ -61,7 +65,7 @@ export default function AdminDashboard() {
               <Loader2 className="h-10 w-10 animate-spin text-primary" />
             </div>
           ) : (
-            <AdminDashboardCharts users={users} />
+            <AdminDashboardCharts users={users} transactions={transactions} />
           )}
         </div>
       </main>
